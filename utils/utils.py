@@ -3,12 +3,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt 
 import seaborn as sns
-from torch import  nn
-from tqdm import  tqdm
 from torch.utils.data import DataLoader
 from sklearn.preprocessing import RobustScaler
 from model.AE_FIN import loss_function
-
         
 def normalize_histogram(hist):
     """
