@@ -51,7 +51,7 @@ class AutoEncoder(nn.Module):
         
         return mse
     
-def train_model(model, optimizer, train_loader, epochs):
+def train_model(model, optimizer, train_loader, epochs, skip = 100):
     """
     Train model
 
@@ -60,6 +60,11 @@ def train_model(model, optimizer, train_loader, epochs):
     - optimizer
     - train_loader
     - epochs
+    - skip
+
+    Returns:
+    - None
+    
     """
     epochs = epochs
     for epoch in range(0, epochs + 1):
@@ -67,10 +72,35 @@ def train_model(model, optimizer, train_loader, epochs):
         model.train()
         train_loss = 0
         batch_id = 0
+        if epoch%skip == 0:
+            with tqdm(train_loader, unit=" batch") as tepoch:
+                for x in tepoch:
+                    
+                    tepoch.set_description(f"Epoch {epoch}")
+                    optimizer.zero_grad()
+                    
+                    # model forward
+                    x = x.to(device)
+                    
+                    x_hat = model(x)
+                    
+                    # caculate loss
+                    loss = model.loss_function(x_hat, x, dim_input=83)
+                    
+                    train_loss += loss.item()
 
-        with tqdm(train_loader, unit=" batch") as tepoch:
-            for x in tepoch:
-                tepoch.set_description(f"Epoch {epoch}")
+                    # backpropagation
+                    loss.backward()
+                    optimizer.step()
+
+                    # clear VRam
+                    torch.cuda.empty_cache()
+                    
+                    batch_id += 1
+                    
+                    tepoch.set_postfix(loss= f' {round(train_loss/batch_id, 4)}')
+        else:
+            for x in train_loader:
                 optimizer.zero_grad()
                 
                 # model forward
@@ -91,7 +121,7 @@ def train_model(model, optimizer, train_loader, epochs):
                 torch.cuda.empty_cache()
                 
                 batch_id += 1
-                tepoch.set_postfix(loss= f' {round(train_loss/batch_id, 4)}')
+
 
 def loss_function(x_hat, x,dim_input, training ):
     """
