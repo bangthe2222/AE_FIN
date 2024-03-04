@@ -80,3 +80,7 @@ def moments(returns):
                           'kurt': scipy_stats.kurtosis(returns, fisher=False)})
     else:
         return returns.apply(moments, axis=1)
+
+def returns_to_equity(returns):
+    equity = returns.add(1).cumprod().sub(1)
+    return equity
