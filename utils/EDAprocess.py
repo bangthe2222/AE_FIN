@@ -159,7 +159,8 @@ class EDAProcess:
         - max: max index
         
         Returns:
-        - 
+        - plot sbs box
+
         """
         if index_choose == "min":
             sns.boxplot(df.iloc[:, self.min_loss_index.item()*2: self.min_loss_index.item()*2 + 2])
