@@ -12,8 +12,16 @@ class EDAProcess:
     """
     def __init__(self, data_train, inverse_output, company_names) -> None:
         
-        self.data_input = torch.tensor(data_train)
-        self.data_output = torch.tensor(inverse_output)
+        if torch.is_tensor(data_train):
+            self.data_input = data_train
+        else:
+            self.data_input = torch.tensor(data_train)
+
+        if torch.is_tensor(inverse_output):
+            self.data_output = inverse_output
+        else:
+            self.data_output = torch.tensor(inverse_output)
+            
         self.company_names = company_names
         self.company_names_out = [name+ " OUT" for name in self.company_names]
         self.loss = loss_function(self.data_output, self.data_input, data_train.shape[1], training=False)
@@ -141,7 +149,7 @@ class EDAProcess:
 
         return self.TVD_value
     
-    def plot_side_by_side_box(self, df, min = None, max = None):
+    def plot_side_by_side_box(self, df, min = None, max = None , index_choose = None):
         """
         Plot side by side box of stock value
 
@@ -153,11 +161,16 @@ class EDAProcess:
         Returns:
         - 
         """
-        if min == None and max == None:
-            sns.boxplot(df.iloc[:,:])
-        elif min == None:
-            sns.boxplot(df.iloc[:, :max])
-        elif max == None:
-            sns.boxplot(df.iloc[:, min:])
+        if index_choose == "min":
+            sns.boxplot(df.iloc[:, self.min_loss_index.item()*2: self.min_loss_index.item()*2 + 2])
+        elif index_choose == "max":
+            sns.boxplot(df.iloc[:, self.max_loss_index.item()*2: self.max_loss_index.item()*2 + 2])
         else:
-            sns.boxplot(df.iloc[:, min:max])
+            if min == None and max == None:
+                sns.boxplot(df.iloc[:,:])
+            elif min == None:
+                sns.boxplot(df.iloc[:, :max])
+            elif max == None:
+                sns.boxplot(df.iloc[:, min:])
+            else:
+                sns.boxplot(df.iloc[:, min:max])

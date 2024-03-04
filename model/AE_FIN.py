@@ -30,26 +30,9 @@ class AutoEncoder(nn.Module):
         
     def forward(self, x):
         z = self.encoder(x.view(-1, self.dim_input))
-        # mu = mu_logvar[:, 0, :]
-        # logvar = mu_logvar[:, 1, :]
-        # z = self.reparameterise(mu, logvar)
         return self.decoder(z)
 
-    # def reparameterise(self, mu, logvar):
-    #     if self.training:
-    #         std = logvar.mul(0.5).exp_()
-    #         epsilon = std.data.new(std.size()).normal_()
-    #         return epsilon.mul(std).add_(mu)
-    #     else:
-    #         return mu
-            
-    def loss_function(self,x_hat, x,dim_input):
-        
-        mse = nn.functional.mse_loss(
-            x_hat, x.view(-1, dim_input), reduce=self.training, reduction='sum',
-        )
-        
-        return mse
+
     
 def train_model(model, optimizer, train_loader, epochs, skip = 100):
     """
@@ -85,7 +68,7 @@ def train_model(model, optimizer, train_loader, epochs, skip = 100):
                     x_hat = model(x)
                     
                     # caculate loss
-                    loss = model.loss_function(x_hat, x, dim_input=83)
+                    loss = loss_function(x_hat, x, dim_input=83, training=True)
                     
                     train_loss += loss.item()
 
@@ -109,7 +92,7 @@ def train_model(model, optimizer, train_loader, epochs, skip = 100):
                 x_hat = model(x)
                 
                 # caculate loss
-                loss = model.loss_function(x_hat, x, dim_input=83)
+                loss = loss_function(x_hat, x, dim_input=83, training=True)
                 
                 train_loss += loss.item()
 
@@ -131,12 +114,19 @@ def loss_function(x_hat, x,dim_input, training ):
     - x_hat
     - x
     - dim_input
-    
+    - training
+
     Returns:
     - mse: mse loss
+
     """
+    reduction = "mean"
+
+    if training == False:
+        reduction = 'none'
+
     mse = nn.functional.mse_loss(
-        x_hat, x.view(-1, dim_input), reduce=training, reduction='sum',
+        x_hat, x.view(-1, dim_input), reduction=reduction
     )
     
     return mse
